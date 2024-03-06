@@ -17,6 +17,8 @@ fi
 # Shift the arguments after parsing the architecture
 shift
 
+CONTENTS_FILE="contents-${ARCHITECTURE}.gz"
+
 # Parse the remaining command-line arguments
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -50,17 +52,27 @@ download_file() {
     return 1
 }
 
+# Cleanup function to remove the downloaded file
+cleanup() {
+    echo "Cleaning up..."
+    rm -f "$CONTENTS_FILE"
+}
+
+# Trap to ensure cleanup runs on exit or interrupt
+trap cleanup EXIT INT TERM
+
 # Function to download and parse the file
 main() {
-    local contents_file="contents-${ARCHITECTURE}.gz"
     local url="${MIRROR_URL}Contents-${ARCHITECTURE}.gz"
 
-    download_file "$url" "$contents_file"
+    download_file "$url" "$CONTENTS_FILE"
     if [ $? -ne 0 ]; then
         echo "Error downloading the Contents file."
         exit 1
     fi
 
     # Parse the Contents file and print statistics
-    gunzip -c "$contents_file" | awk -F ',' '{for (i = 1; i <= NF; i++) print $i}' | awk '{print $NF}' | sort | uniq -c | sort -nr | head -n $TOP_N
+    gunzip -c "$CONTENTS_FILE" | awk -F ',' '{for (i = 1; i <= NF; i++) print $i}' | awk '{print $NF}' | sort | uniq -c | sort -nr | head -n $TOP_N
 }
+
+main
