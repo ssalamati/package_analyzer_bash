@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Default configuration
-ARCHITECTURE=$1  # Take the first argument as the architecture
+ARCHITECTURE=$1
 MIRROR_URL="http://ftp.uk.debian.org/debian/dists/stable/main/"
 RETRY_COUNT=3
 WAIT_SECONDS=5
@@ -31,7 +31,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-# Function to download the Contents file with retry logic
+# Download the Contents file with retry logic
 download_file() {
     local url=$1
     local target_file=$2
@@ -61,7 +61,7 @@ cleanup() {
 # Trap to ensure cleanup runs on exit or interrupt
 trap cleanup EXIT INT TERM
 
-# Function to download and parse the file
+# Download and parse the file
 main() {
     local url="${MIRROR_URL}Contents-${ARCHITECTURE}.gz"
 
@@ -72,7 +72,7 @@ main() {
     fi
 
     # Parse the Contents file and print statistics
-    gunzip -c "$CONTENTS_FILE" | awk -F ',' '{for (i = 1; i <= NF; i++) print $i}' | awk '{print $NF}' | sort | uniq -c | sort -nr | head -n $TOP_N
+    gunzip -c "$CONTENTS_FILE" | awk -F ',' '{for (i = 1; i <= NF; i++) print $i}' | awk -F '/' '{print $NF}' | sort | uniq -c | sort -nr | head -n $TOP_N
 }
 
 main
